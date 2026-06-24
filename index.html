@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proximidades do Assaí — Goiânia</title>
+
+  <!-- Favicon oficial Assaí -->
+  <link rel="icon" href="https://www.assai.com.br/sites/all/themes/assai_2024/favicon/favicon-32x32.png">
+
+  <!-- MapLibre GL -->
+  <link href="https://unpkg.com/maplibre-gl@4.1.1/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://unpkg.com/maplibre-gl@4.1.1/dist/maplibre-gl.js"></script>
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google Fonts: Nunito -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===== DESIGN TOKENS — ASSAÍ 2024 "Sol do Amanhã" ===== */
+    :root {
+      --red:     #CC1B1B;
+      --red-dk:  #A81515;
+      --orange:  #DA532C;
+      --yellow:  #FFD200;
+      --dark:    #1A1A1A;
+      --white:   #FFFFFF;
+      --gray-bg: #F4F4F4;
+      --gray-bd: #E0E0E0;
+      --sidebar-w: 320px;
+      --header-h: 58px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Nunito', Arial, sans-serif;
+      background: var(--dark);
+      color: var(--dark);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== HEADER ===== */
+    #header {
+      height: var(--header-h);
+      flex-shrink: 0;
+      background: linear-gradient(110deg, #A81515 0%, #CC1B1B 30%, #DA532C 65%, #FFD200 100%);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 18px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+      z-index: 20;
+    }
+
+    #header .logo-wrap {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    #header .logo-wrap img {
+      height: 38px;
+      filter: brightness(0) invert(1);
+      object-fit: contain;
+    }
+
+    #header .divider {
+      width: 1px;
+      height: 32px;
+      background: rgba(255,255,255,0.35);
+    }
+
+    #header .title-block { flex: 1; min-width: 0; }
+
+    #header h1 {
+      color: var(--white);
+      font-size: 1.05rem;
+      font-weight: 800;
+      line-height: 1.15;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #header p.subtitle {
+      color: rgba(255,255,255,0.82);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* ===== APP LAYOUT ===== */
+    #app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ===== SIDEBAR ===== */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--gray-bg);
+      border-right: 1px solid var(--gray-bd);
+      border-top: 3px solid var(--red);
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      transition: transform 0.25s ease;
+    }
+
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-track { background: transparent; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 4px; }
+
+    .s-section {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--gray-bd);
+    }
+
+    .s-section:last-child { border-bottom: none; }
+
+    .s-title {
+      font-size: 0.68rem;
+      font-weight: 900;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ===== LAYER TOGGLES ===== */
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 8px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+
+    .layer-item:hover { background: #ebebeb; }
+
+    .layer-item input[type="checkbox"] { display: none; }
+
+    .toggle-track {
+      width: 34px;
+      height: 18px;
+      background: #ccc;
+      border-radius: 9px;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+
+    input[type="checkbox"]:checked ~ .toggle-track { background: var(--red); }
+    input[type="checkbox"]:checked ~ .toggle-track::after { left: 18px; }
+
+    .layer-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(0,0,0,0.12);
+    }
+
+    .layer-text { flex: 1; min-width: 0; }
+
+    .layer-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+
+    .layer-desc {
+      font-size: 0.68rem;
+      color: #777;
+      margin-top: 1px;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 9px 12px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.1s;
+      margin-bottom: 6px;
+    }
+
+    .btn:last-child { margin-bottom: 0; }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-red   { background: var(--red);    color: white; }
+    .btn-red:hover { background: var(--red-dk); }
+
+    .btn-orange { background: var(--orange); color: white; }
+    .btn-orange:hover { background: #be4622; }
+
+    .btn-gray { background: #e0e0e0; color: #444; }
+    .btn-gray:hover { background: #d0d0d0; }
+
+    .btn-route { background: #1d6fa8; color: white; }
+    .btn-route:hover { background: #155a8a; }
+    .btn-route.active { background: #FFD200; color: #1A1A1A; }
+    .btn-route.active:hover { background: #e8bf00; }
+
+    .btn-gps { background: #4285F4; color: white; }
+    .btn-gps:hover { background: #3367D6; }
+    .btn-gps.active { background: #1a73e8; box-shadow: 0 0 0 2px rgba(66,133,244,0.35); }
+
+    #gps-status {
+      font-size: 0.71rem;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.45;
+      display: none;
+    }
+
+    #gps-status.visible { display: block; }
+
+    #gps-status .gps-coords {
+      font-weight: 700;
+      color: #4285F4;
+      font-size: 0.72rem;
+    }
+
+    #gps-status.gps-error { color: #CC1B1B; }
+
+    /* ===== ROTA ===== */
+    #route-info {
+      display: none;
+      background: white;
+      border-radius: 9px;
+      overflow: hidden;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+      border: 1px solid var(--gray-bd);
+      margin-top: 8px;
+    }
+
+    #route-info.visible { display: block; }
+
+    .route-info-head {
+      background: #1d6fa8;
+      color: white;
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .route-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .route-metric {
+      padding: 9px 12px;
+      border-right: 1px solid var(--gray-bd);
+      border-bottom: 1px solid var(--gray-bd);
+    }
+
+    .route-metric:nth-child(even) { border-right: none; }
+    .route-metric:nth-last-child(-n+2) { border-bottom: none; }
+
+    .route-metric-val {
+      font-size: 1rem;
+      font-weight: 900;
+      color: #1d6fa8;
+      line-height: 1;
+    }
+
+    .route-metric-lbl {
+      font-size: 0.63rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .route-hint {
+      font-size: 0.73rem;
+      color: #888;
+      font-style: italic;
+      padding: 6px 0 0;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* cursor do mapa em modo rota */
+    #map-wrap.routing-mode { cursor: crosshair !important; }
+    #map-wrap.routing-mode #map { cursor: crosshair !important; }
+
+    /* ===== BASEMAP PICKER ===== */
+    .bm-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .bm-card {
+      position: relative;
+      border-radius: 7px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2.5px solid transparent;
+      transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+      aspect-ratio: 1 / 1;
+      background: #ccc;
+    }
+
+    .bm-card:hover {
+      transform: scale(1.04);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+    }
+
+    .bm-card.active {
+      border-color: var(--red);
+      box-shadow: 0 0 0 1px var(--red);
+    }
+
+    .bm-card.active .bm-check {
+      display: flex;
+    }
+
+    .bm-check {
+      display: none;
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 16px;
+      height: 16px;
+      background: var(--red);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.55rem;
+      color: white;
+      font-weight: 900;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    .bm-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    .bm-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.72));
+      color: white;
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 10px 4px 3px;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    /* ===== BOTÕES DE APLICATIVOS DE MAPAS ===== */
+    .route-apps {
+      border-top: 1px solid #f0f0f0;
+      padding: 10px 12px 12px;
+    }
+
+    .route-apps-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .route-apps-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .app-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 4px 7px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+      line-height: 1.2;
+    }
+
+    .app-btn i { font-size: 1.1rem; }
+    .app-btn:hover { filter: brightness(0.9); }
+    .app-btn:active { transform: scale(0.96); }
+
+    .app-gmaps { background: #4285F4; color: white; }
+    .app-waze  { background: #05C8F7; color: #1A1A1A; }
+    .app-apple { background: #1C1C1E; color: white; }
+
+    /* ===== STAT CARDS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 8px;
+      padding: 9px 10px;
+      border-left: 3px solid var(--red);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .stat-val {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--red);
+      line-height: 1;
+    }
+
+    .stat-lbl {
+      font-size: 0.65rem;
+      color: #777;
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+
+    /* ===== LEGEND ===== */
+    .legend-block + .legend-block {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--gray-bd);
+    }
+
+    .legend-head {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+
+    .legend-rows { display: flex; flex-direction: column; gap: 3px; }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.71rem;
+      color: #444;
+    }
+
+    .legend-swatch {
+      width: 22px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    #legend-empty {
+      font-size: 0.78rem;
+      color: #aaa;
+      font-style: italic;
+    }
+
+    /* ===== SIDEBAR FOOTER ===== */
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 10px 15px;
+      font-size: 0.63rem;
+      color: #bbb;
+      text-align: center;
+      border-top: 1px solid var(--gray-bd);
+      line-height: 1.6;
+    }
+
+    /* ===== MAP CONTAINER ===== */
+    #map-wrap {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ===== LOADING OVERLAY ===== */
+    #loading {
+      position: absolute;
+      inset: 0;
+      background: rgba(20, 20, 20, 0.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 50;
+    }
+
+    #loading.hidden { display: none; }
+
+    .spinner {
+      width: 46px;
+      height: 46px;
+      border: 4px solid rgba(255, 210, 0, 0.25);
+      border-top-color: var(--yellow);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #loading p {
+      color: rgba(255,255,255,0.85);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    #loading small {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.72rem;
+    }
+
+    /* ===== MAPLIBRE POPUP — CUSTOM ===== */
+    .maplibregl-popup-content {
+      padding: 0 !important;
+      border-radius: 10px !important;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.22) !important;
+      font-family: 'Nunito', sans-serif !important;
+      min-width: 210px;
+      max-width: 280px;
+    }
+
+    .maplibregl-popup-close-button {
+      color: white !important;
+      font-size: 18px !important;
+      right: 6px !important;
+      top: 4px !important;
+      line-height: 1 !important;
+    }
+
+    .maplibregl-popup-close-button:hover { background: transparent !important; opacity: 0.7; }
+
+    .pu-head {
+      background: var(--red);
+      color: white;
+      padding: 10px 32px 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .pu-body { padding: 8px 14px 10px; background: white; }
+
+    .pu-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.76rem;
+      padding: 4px 0;
+      border-bottom: 1px solid #f2f2f2;
+      gap: 8px;
+    }
+
+    .pu-row:last-child { border-bottom: none; }
+    .pu-lbl { color: #888; flex-shrink: 0; }
+    .pu-val { font-weight: 700; color: var(--dark); text-align: right; }
+
+    /* ===== MOBILE TOGGLE BUTTON ===== */
+    #btn-sidebar {
+      display: none;
+      position: fixed;
+      top: calc(var(--header-h) + 10px);
+      left: 10px;
+      z-index: 30;
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      :root { --sidebar-w: 290px; }
+
+      #btn-sidebar { display: flex; }
+
+      #sidebar {
+        position: fixed;
+        top: var(--header-h);
+        left: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        box-shadow: none;
+      }
+
+      #sidebar.open {
+        transform: translateX(0);
+        box-shadow: 6px 0 24px rgba(0,0,0,0.28);
+      }
+
+      #header h1 { font-size: 0.92rem; }
+      #header p.subtitle { display: none; }
+      #header .divider { display: none; }
+    }
+
+    @media (max-width: 420px) {
+      #header .logo-wrap { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header id="header">
+    <div class="logo-wrap">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Assa%C3%AD_Atacadista_logo_2024.svg/512px-Assa%C3%AD_Atacadista_logo_2024.svg.png"
+        alt="Assaí Atacadista"
+        onerror="this.parentElement.style.display='none'">
+    </div>
+    <div class="divider"></div>
+    <div class="title-block">
+      <h1><i class="fas fa-map-location-dot"></i> Proximidades do Assaí</h1>
+      <p class="subtitle">Análise Geoespacial &nbsp;·&nbsp; Goiânia &nbsp;·&nbsp; GO</p>
+    </div>
+  </header>
+
+  <!-- Mobile sidebar toggle -->
+  <button id="btn-sidebar" onclick="toggleSidebar()" title="Abrir painel">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <div id="app">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+
+      <!-- CAMADAS -->
+      <div class="s-section">
+        <div class="s-title"><i class="fas fa-layer-group"></i> Camadas</div>
+
+        <label class="layer-item">
+          <input type="checkbox" id="tog-assai" checked>
+          <div class="toggle-track"></div>
+          <div class="layer-dot" style="background:#CC1B1B"></div>
+          <div class="layer-text">
+            <div class="layer-name">Loja Assaí</div>
+            <div class="layer-desc">Ponto de referência</div>
+          </div>
+        </label>
+
+        <label class="layer-item">
+          <input type="checkbox" id="tog-mercantis" checked>
+          <div class="toggle-track"></div>
+          <div class="layer-dot" style="background:#2E7D32"></div>
+          <div class="layer-text">
+            <div class="layer-name">Mercantis</div>
+            <div class="layer-desc">Supermercados na região (OSM)</div>
+          </div>
+        </label>
+
+        <label class="layer-item">
+          <input type="checkbox" id="tog-goiania" checked>
+          <div class="toggle-track"></div>
+          <div class="layer-dot" style="background:#DA532C; border-radius:2px"></div>
+          <div class="layer-text">
+            <div class="layer-name">Limite de Goiânia</div>
+            <div class="layer-desc">Município — perímetro</div>
+          </div>
+        </label>
+
+        <label class="layer-item">
+          <input type="checkbox" id="tog-pop" checked>
+          <div class="toggle-track"></div>
+          <div class="layer-dot" style="background:#2171b5; border-radius:2px"></div>
+          <div class="layer-text">
+            <div class="layer-name">Setores — População</div>
+            <div class="layer-desc">V06002_real · 5 classes · intervalo igual</div>
+          </div>
+        </label>
+
+        <label class="layer-item">
+          <input type="checkbox" id="tog-renda">
+          <div class="toggle-track"></div>
+          <div class="layer-dot" style="background:#fd8d3c; border-radius:2px"></div>
+          <div class="layer-text">
+            <div class="layer-name">Setores — Renda</div>
+            <div class="layer-desc">V06004_real · 5 classes · intervalo igual</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- NAVEGAÇÃO -->
+      <div class="s-section">
+        <div class="s-title"><i class="fas fa-location-crosshairs"></i> Navegação</div>
+        <button class="btn btn-red"    onclick="flyToAssai()">
+          <i class="fas fa-store"></i> Ir para o Assaí
+        </button>
+        <button class="btn btn-orange" onclick="fitGoiania()">
+          <i class="fas fa-city"></i> Ver Goiânia completa
+        </button>
+        <button class="btn btn-gps" id="btn-gps" onclick="toggleGps()">
+          <i class="fas fa-location-dot"></i> Ativar minha localização (GPS)
+        </button>
+        <p id="gps-status"></p>
+      </div>
+
+      <!-- ROTA -->
+      <div class="s-section">
+        <div class="s-title"><i class="fas fa-route"></i> Rota até o Assaí</div>
+
+        <button class="btn btn-route" id="btn-route-toggle" onclick="toggleRouteMode()">
+          <i class="fas fa-crosshairs"></i> Clique no mapa para definir origem
+        </button>
+        <button class="btn btn-gray" id="btn-route-clear" onclick="clearRoute()" style="display:none">
+          <i class="fas fa-trash"></i> Limpar rota
+        </button>
+
+        <p class="route-hint" id="route-hint">
+          Ative e clique em qualquer ponto do mapa para calcular a rota de carro até a loja.
+        </p>
+
+        <div id="route-info">
+          <div class="route-info-head">
+            <i class="fas fa-route"></i> Rota calculada (carro)
+          </div>
+          <div class="route-metrics">
+            <div class="route-metric">
+              <div class="route-metric-val" id="rt-dist">—</div>
+              <div class="route-metric-lbl">Distância</div>
+            </div>
+            <div class="route-metric">
+              <div class="route-metric-val" id="rt-time">—</div>
+              <div class="route-metric-lbl">Tempo estimado</div>
+            </div>
+            <div class="route-metric" style="grid-column:span 2">
+              <div class="route-metric-val" style="font-size:0.78rem;color:#555" id="rt-origin">—</div>
+              <div class="route-metric-lbl">Origem (lon, lat)</div>
+            </div>
+          </div>
+          <!-- Botões para abrir em aplicativos -->
+          <div class="route-apps">
+            <div class="route-apps-label">Abrir em aplicativo de mapas:</div>
+            <div class="route-apps-grid">
+              <button class="app-btn app-gmaps" onclick="openInMapApp('google')" title="Google Maps">
+                <i class="fas fa-map"></i> Google Maps
+              </button>
+              <button class="app-btn app-waze" onclick="openInMapApp('waze')" title="Waze">
+                <i class="fas fa-car"></i> Waze
+              </button>
+              <button class="app-btn app-apple" onclick="openInMapApp('apple')" title="Apple Maps">
+                <i class="fab fa-apple"></i> Apple Maps
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESTATÍSTICAS -->
+      <div class="s-section">
+        <div class="s-title"><i class="fas fa-chart-simple"></i> Estatísticas dos Setores</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-val" id="st-n">—</div>
+            <div class="stat-lbl">Setores censitários</div>
+          </div>
+          <div class="stat-card" style="border-left-color:var(--orange)">
+            <div class="stat-val" style="color:var(--orange)" id="st-tot">—</div>
+            <div class="stat-lbl">Pop. total</div>
+          </div>
+          <div class="stat-card" style="border-left-color:#6baed6">
+            <div class="stat-val" style="color:#6baed6" id="st-pmin">—</div>
+            <div class="stat-lbl">Pop. mín. setor</div>
+          </div>
+          <div class="stat-card" style="border-left-color:#084594">
+            <div class="stat-val" style="color:#084594" id="st-pmax">—</div>
+            <div class="stat-lbl">Pop. máx. setor</div>
+          </div>
+          <div class="stat-card" style="border-left-color:#fecc5c">
+            <div class="stat-val" style="color:#b86c00;font-size:0.88rem" id="st-rmin">—</div>
+            <div class="stat-lbl">Renda mín.</div>
+          </div>
+          <div class="stat-card" style="border-left-color:#bd0026">
+            <div class="stat-val" style="color:#bd0026;font-size:0.88rem" id="st-rmax">—</div>
+            <div class="stat-lbl">Renda máx.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEGENDA -->
+      <div class="s-section" id="legend-wrap">
+        <div class="s-title"><i class="fas fa-swatchbook"></i> Legenda</div>
+        <div id="legend-content">
+          <p id="legend-empty">Ative uma camada de setores para ver a legenda.</p>
+        </div>
+      </div>
+
+      <!-- MAPA DE FUNDO -->
+      <div class="s-section">
+        <div class="s-title"><i class="fas fa-globe"></i> Mapa de Fundo</div>
+        <div class="bm-grid" id="bm-grid">
+          <!-- preenchido pelo JS -->
+        </div>
+      </div>
+
+      <!-- RODAPÉ -->
+      <div class="sidebar-footer">
+        Dados: IBGE Censo 2022 &nbsp;·&nbsp; MapLibre GL 4.1.1<br>
+        © Assaí Atacadista &nbsp;·&nbsp; OpenStreetMap contributors
+      </div>
+
+    </aside><!-- /sidebar -->
+
+    <!-- MAP WRAPPER -->
+    <div id="map-wrap">
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>Carregando camadas geoespaciais…</p>
+        <small>setores · limite municipal · ponto de referência</small>
+      </div>
+      <div id="map"></div>
+    </div>
+
+  </div><!-- /app -->
+
+<script>
+/* ============================================================
+   CONSTANTES
+   ============================================================ */
+const ASSAI_MERC   = [-5490030.437073107808828, -1880205.485450873849913];
+const POP_FIELD    = 'V06002_real';
+const RENDA_FIELD  = 'V06004_real';
+const N_CLASSES    = 5;
+
+const POP_COLORS   = ['#eff3ff','#bdd7e7','#6baed6','#2171b5','#084594'];
+const RENDA_COLORS = ['#ffffb2','#fecc5c','#fd8d3c','#f03b20','#bd0026'];
+
+/* ============================================================
+   ESTADO GLOBAL
+   ============================================================ */
+let map, popup;
+let assaiLngLat;
+let goianiaBounds = null;
+let popBreaks = [], rendaBreaks = [];
+let gpsWatchId = null;
+let gpsActive = false;
+let userLngLat = null;
+let gpsFirstFix = true;
+
+/* ============================================================
+   CONVERSÃO EPSG:3857 → WGS84
+   ============================================================ */
+function mercToLngLat(x, y) {
+  const R = 20037508.342789244;
+  const lng = x * 180 / R;
+  const lat = Math.atan(Math.sinh(y * Math.PI / R)) * 180 / Math.PI;
+  return [lng, lat];
+}
+
+/* ============================================================
+   CLASSIFICAÇÃO: INTERVALO IGUAL
+   ============================================================ */
+function equalIntervalBreaks(values, n) {
+  const valid = values.filter(v => v != null && isFinite(v));
+  if (!valid.length) return { min: 0, max: 0, breaks: [] };
+  const min = Math.min(...valid);
+  const max = Math.max(...valid);
+  const step = (max - min) / n;
+  const breaks = [];
+  for (let i = 1; i < n; i++) breaks.push(+(min + step * i).toFixed(2));
+  return { min, max, breaks };
+}
+
+/* ============================================================
+   FORMATAÇÃO
+   ============================================================ */
+const fmtN = n => Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+const fmtR = n => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+/* ============================================================
+   LEGENDA
+   ============================================================ */
+function buildLegendBlock(title, colors, breaks, fmtFn) {
+  const labels = [
+    `< ${fmtFn(breaks[0])}`,
+    `${fmtFn(breaks[0])} – ${fmtFn(breaks[1])}`,
+    `${fmtFn(breaks[1])} – ${fmtFn(breaks[2])}`,
+    `${fmtFn(breaks[2])} – ${fmtFn(breaks[3])}`,
+    `≥ ${fmtFn(breaks[3])}`
+  ];
+  return `
+    <div class="legend-block">
+      <div class="legend-head">${title}</div>
+      <div class="legend-rows">
+        ${colors.map((c,i) =>
+          `<div class="legend-row">
+             <div class="legend-swatch" style="background:${c}"></div>
+             <span>${labels[i]}</span>
+           </div>`
+        ).join('')}
+      </div>
+    </div>`;
+}
+
+function updateLegend() {
+  const popOn   = document.getElementById('tog-pop').checked;
+  const rendaOn = document.getElementById('tog-renda').checked;
+  const el = document.getElementById('legend-content');
+
+  if ((!popOn && !rendaOn) || !popBreaks.length) {
+    el.innerHTML = '<p id="legend-empty">Ative uma camada de setores para ver a legenda.</p>';
+    return;
+  }
+
+  let html = '';
+  if (popOn)   html += buildLegendBlock('População (V06002)', POP_COLORS,   popBreaks,   fmtN);
+  if (rendaOn) html += buildLegendBlock('Renda Média (V06004)', RENDA_COLORS, rendaBreaks, fmtR);
+  el.innerHTML = html;
+}
+
+/* ============================================================
+   ESTATÍSTICAS
+   ============================================================ */
+function updateStats(features) {
+  const pops   = features.map(f => f.properties[POP_FIELD]).filter(v => v != null && isFinite(v));
+  const rendas = features.map(f => f.properties[RENDA_FIELD]).filter(v => v != null && isFinite(v));
+
+  document.getElementById('st-n').textContent    = features.length;
+  document.getElementById('st-tot').textContent  = fmtN(pops.reduce((a, b) => a + b, 0));
+  document.getElementById('st-pmin').textContent = fmtN(Math.min(...pops));
+  document.getElementById('st-pmax').textContent = fmtN(Math.max(...pops));
+  document.getElementById('st-rmin').textContent = fmtR(Math.min(...rendas));
+  document.getElementById('st-rmax').textContent = fmtR(Math.max(...rendas));
+}
+
+/* ============================================================
+   POPUP HELPERS
+   ============================================================ */
+function popupSetores(e) {
+  const p    = e.features[0].properties;
+  const nome = p.NM_BAIRRO || p.NM_SUBDIST || p.NM_DIST || 'Setor Censitário';
+  popup.setLngLat(e.lngLat).setHTML(`
+    <div class="pu-head"><i class="fas fa-map-pin"></i>&nbsp;${nome}</div>
+    <div class="pu-body">
+      <div class="pu-row"><span class="pu-lbl">Setor</span>
+        <span class="pu-val">${p.CD_SETOR ? p.CD_SETOR.slice(-6) : '—'}</span></div>
+      <div class="pu-row"><span class="pu-lbl">Situação</span>
+        <span class="pu-val">${p.SITUACAO || '—'}</span></div>
+      <div class="pu-row"><span class="pu-lbl">Subdistrito</span>
+        <span class="pu-val">${p.NM_SUBDIST || '—'}</span></div>
+      <div class="pu-row"><span class="pu-lbl">Área (km²)</span>
+        <span class="pu-val">${p.AREA_KM2 ? (+p.AREA_KM2).toFixed(3) : '—'}</span></div>
+      <div class="pu-row"><span class="pu-lbl">População</span>
+        <span class="pu-val" style="color:#2171b5">${p[POP_FIELD] != null ? fmtN(p[POP_FIELD]) : '—'}</span></div>
+      <div class="pu-row"><span class="pu-lbl">Renda média</span>
+        <span class="pu-val" style="color:#bd0026">${p[RENDA_FIELD] != null ? fmtR(p[RENDA_FIELD]) : '—'}</span></div>
+    </div>
+  `).addTo(map);
+}
+
+function popupMercantis(e) {
+  const p = e.features[0].properties;
+  const nome = p.name || 'Supermercado (sem nome)';
+  const rua = [p['addr:street'], p['addr:housenumber']].filter(Boolean).join(', ');
+  popup.setLngLat(e.lngLat).setHTML(`
+    <div class="pu-head" style="background:#2E7D32"><i class="fas fa-cart-shopping"></i>&nbsp;${nome}</div>
+    <div class="pu-body">
+      <div class="pu-row"><span class="pu-lbl">Tipo</span>
+        <span class="pu-val">${p.shop || 'supermarket'}</span></div>
+      ${rua ? `<div class="pu-row"><span class="pu-lbl">Endereço</span>
+        <span class="pu-val">${rua}</span></div>` : ''}
+      ${p.phone ? `<div class="pu-row"><span class="pu-lbl">Telefone</span>
+        <span class="pu-val">${p.phone}</span></div>` : ''}
+      ${p.opening_hours ? `<div class="pu-row"><span class="pu-lbl">Horário</span>
+        <span class="pu-val">${p.opening_hours}</span></div>` : ''}
+      ${p.website ? `<div class="pu-row"><span class="pu-lbl">Site</span>
+        <span class="pu-val"><a href="${p.website}" target="_blank" rel="noopener">abrir</a></span></div>` : ''}
+      <div class="pu-row"><span class="pu-lbl">OSM ID</span>
+        <span class="pu-val">${p.osm_id || '—'}</span></div>
+    </div>
+  `).addTo(map);
+}
+
+/* ============================================================
+   EXPRESSÃO STEP MAPLIBRE
+   ============================================================ */
+function stepExpr(field, colors, breaks) {
+  return [
+    'step', ['get', field],
+    colors[0],
+    breaks[0], colors[1],
+    breaks[1], colors[2],
+    breaks[2], colors[3],
+    breaks[3], colors[4]
+  ];
+}
+
+/* ============================================================
+   INICIALIZAÇÃO DO MAPA
+   ============================================================ */
+assaiLngLat = mercToLngLat(ASSAI_MERC[0], ASSAI_MERC[1]);
+
+map = new maplibregl.Map({
+  container: 'map',
+  style: {
+    version: 8,
+    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+    sources: {
+      osm: {
+        type: 'raster',
+        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }
+    },
+    layers: [{ id: 'osm-bg', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 22 }]
+  },
+  center: assaiLngLat,
+  zoom: 13,
+  maxZoom: 18,
+  minZoom: 8
+});
+
+map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'top-right');
+map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-right');
+
+popup = new maplibregl.Popup({ closeButton: true, closeOnClick: false, maxWidth: '320px' });
+
+/* ============================================================
+   CARGA DE DADOS
+   ============================================================ */
+async function loadAll() {
+  try {
+    await new Promise(resolve => {
+      if (map.loaded()) resolve();
+      else map.on('load', resolve);
+    });
+
+    const [assaiGJ, goianiaGJ, setoresGJ, mercantisGJ] = await Promise.all([
+      fetch('dados/assai.geojson').then(r => { if (!r.ok) throw new Error('assai.geojson'); return r.json(); }),
+      fetch('dados/Goiania.geojson').then(r => { if (!r.ok) throw new Error('Goiania.geojson'); return r.json(); }),
+      fetch('dados/setores.geojson').then(r => { if (!r.ok) throw new Error('setores.geojson'); return r.json(); }),
+      fetch('dados/mercantis.geojson').then(r => { if (!r.ok) throw new Error('mercantis.geojson'); return r.json(); })
+    ]);
+
+    /* ------ GOIÂNIA ------ */
+    map.addSource('goiania-src', { type: 'geojson', data: goianiaGJ });
+
+    map.addLayer({
+      id: 'goiania-fill', type: 'fill', source: 'goiania-src',
+      paint: { 'fill-color': '#DA532C', 'fill-opacity': 0.04 }
+    });
+    map.addLayer({
+      id: 'goiania-line', type: 'line', source: 'goiania-src',
+      paint: { 'line-color': '#DA532C', 'line-width': 2.2, 'line-opacity': 0.85 }
+    });
+
+    // Calcular bounds de Goiânia para botão "Ver Goiânia"
+    const allCoords = [];
+    function collectCoords(geom) {
+      if (!geom) return;
+      const t = geom.type;
+      if (t === 'Point')           allCoords.push(geom.coordinates);
+      else if (t === 'LineString' || t === 'MultiPoint')
+        geom.coordinates.forEach(c => allCoords.push(c));
+      else if (t === 'Polygon')    geom.coordinates[0].forEach(c => allCoords.push(c));
+      else if (t === 'MultiPolygon')
+        geom.coordinates.forEach(poly => poly[0].forEach(c => allCoords.push(c)));
+      else if (t === 'GeometryCollection')
+        geom.geometries.forEach(collectCoords);
+    }
+    goianiaGJ.features.forEach(f => collectCoords(f.geometry));
+    if (allCoords.length) {
+      const lngs = allCoords.map(c => c[0]);
+      const lats = allCoords.map(c => c[1]);
+      goianiaBounds = [
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)]
+      ];
+    }
+
+    /* ------ SETORES ------ */
+    const popVals   = setoresGJ.features.map(f => f.properties[POP_FIELD]);
+    const rendaVals = setoresGJ.features.map(f => f.properties[RENDA_FIELD]);
+
+    const popInfo   = equalIntervalBreaks(popVals,   N_CLASSES);
+    const rendaInfo = equalIntervalBreaks(rendaVals, N_CLASSES);
+    popBreaks   = popInfo.breaks;
+    rendaBreaks = rendaInfo.breaks;
+
+    map.addSource('setores-src', { type: 'geojson', data: setoresGJ });
+
+    // Camada: População
+    map.addLayer({
+      id: 'setores-pop', type: 'fill', source: 'setores-src',
+      paint: { 'fill-color': stepExpr(POP_FIELD, POP_COLORS, popBreaks), 'fill-opacity': 0.78 }
+    });
+    map.addLayer({
+      id: 'setores-pop-line', type: 'line', source: 'setores-src',
+      paint: { 'line-color': '#ffffff', 'line-width': 0.5, 'line-opacity': 0.35 }
+    });
+
+    // Camada: Renda (oculta por defeito)
+    map.addLayer({
+      id: 'setores-renda', type: 'fill', source: 'setores-src',
+      layout: { visibility: 'none' },
+      paint: { 'fill-color': stepExpr(RENDA_FIELD, RENDA_COLORS, rendaBreaks), 'fill-opacity': 0.78 }
+    });
+    map.addLayer({
+      id: 'setores-renda-line', type: 'line', source: 'setores-src',
+      layout: { visibility: 'none' },
+      paint: { 'line-color': '#ffffff', 'line-width': 0.5, 'line-opacity': 0.35 }
+    });
+
+    /* ------ MERCANTIS (supermercados) ------ */
+    map.addSource('mercantis-src', { type: 'geojson', data: mercantisGJ });
+
+    map.addLayer({
+      id: 'mercantis-dot',
+      type: 'circle',
+      source: 'mercantis-src',
+      paint: {
+        'circle-color': '#2E7D32',
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 4, 14, 7, 16, 9],
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#FFFFFF',
+        'circle-opacity': 0.92
+      }
+    });
+
+    map.addLayer({
+      id: 'mercantis-label',
+      type: 'symbol',
+      source: 'mercantis-src',
+      layout: {
+        'text-field': ['coalesce', ['get', 'name'], ''],
+        'text-size': 11,
+        'text-offset': [0, 1.2],
+        'text-anchor': 'top',
+        'text-max-width': 10,
+        'text-optional': true
+      },
+      paint: {
+        'text-color': '#1B5E20',
+        'text-halo-color': '#FFFFFF',
+        'text-halo-width': 1.5
+      },
+      minzoom: 13
+    });
+
+    /* ------ PONTO ASSAÍ ------ */
+    const assaiGeoJSON = {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        properties: { name: 'Assaí Atacadista' },
+        geometry: { type: 'Point', coordinates: assaiLngLat }
+      }]
+    };
+
+    map.addSource('assai-src', { type: 'geojson', data: assaiGeoJSON });
+
+    // Halo pulsante
+    map.addLayer({
+      id: 'assai-halo', type: 'circle', source: 'assai-src',
+      paint: { 'circle-color': '#CC1B1B', 'circle-radius': 24, 'circle-opacity': 0.15, 'circle-blur': 1 }
+    });
+    // Ponto principal
+    map.addLayer({
+      id: 'assai-dot', type: 'circle', source: 'assai-src',
+      paint: {
+        'circle-color': '#CC1B1B',
+        'circle-radius': 10,
+        'circle-stroke-width': 3,
+        'circle-stroke-color': '#FFFFFF'
+      }
+    });
+
+    /* ------ INTERAÇÕES ------ */
+    // Popups em setores
+    ['setores-pop', 'setores-renda'].forEach(lyr => {
+      map.on('click', lyr, popupSetores);
+      map.on('mouseenter', lyr, () => { map.getCanvas().style.cursor = 'pointer'; });
+      map.on('mouseleave', lyr, () => { map.getCanvas().style.cursor = ''; });
+    });
+
+    // Popup Mercantis
+    map.on('click', 'mercantis-dot', popupMercantis);
+    map.on('mouseenter', 'mercantis-dot', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'mercantis-dot', () => { map.getCanvas().style.cursor = ''; });
+
+    // Popup no ponto Assaí
+    map.on('click', 'assai-dot', () => {
+      popup.setLngLat(assaiLngLat).setHTML(`
+        <div class="pu-head"><i class="fas fa-store"></i>&nbsp;Assaí Atacadista — Goiânia</div>
+        <div class="pu-body">
+          <div class="pu-row"><span class="pu-lbl">Lon</span>
+            <span class="pu-val">${assaiLngLat[0].toFixed(5)}°</span></div>
+          <div class="pu-row"><span class="pu-lbl">Lat</span>
+            <span class="pu-val">${assaiLngLat[1].toFixed(5)}°</span></div>
+          <div class="pu-row"><span class="pu-lbl">CRS original</span>
+            <span class="pu-val">EPSG:3857</span></div>
+        </div>
+      `).addTo(map);
+    });
+    map.on('mouseenter', 'assai-dot', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'assai-dot', () => { map.getCanvas().style.cursor = ''; });
+
+    /* ------ LOCALIZAÇÃO DO USUÁRIO (GPS) ------ */
+    map.addSource('user-src', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] }
+    });
+
+    map.addLayer({
+      id: 'user-accuracy',
+      type: 'circle',
+      source: 'user-src',
+      layout: { visibility: 'none' },
+      paint: {
+        'circle-color': '#4285F4',
+        'circle-opacity': 0.18,
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          0, 0,
+          20, ['/', ['get', 'accuracy'], ['*', 0.075, ['cos', ['*', ['get', 'lat'], 0.0174533]]]]
+        ]
+      }
+    });
+
+    map.addLayer({
+      id: 'user-dot',
+      type: 'circle',
+      source: 'user-src',
+      layout: { visibility: 'none' },
+      paint: {
+        'circle-color': '#4285F4',
+        'circle-radius': 9,
+        'circle-stroke-width': 3,
+        'circle-stroke-color': '#FFFFFF'
+      }
+    });
+
+    map.addLayer({
+      id: 'user-pulse',
+      type: 'circle',
+      source: 'user-src',
+      layout: { visibility: 'none' },
+      paint: {
+        'circle-color': '#4285F4',
+        'circle-radius': 18,
+        'circle-opacity': 0.25,
+        'circle-blur': 0.6
+      }
+    });
+
+    map.on('click', 'user-dot', e => {
+      const p = e.features[0].properties;
+      popup.setLngLat(e.lngLat).setHTML(`
+        <div class="pu-head" style="background:#4285F4"><i class="fas fa-location-dot"></i>&nbsp;Sua localização</div>
+        <div class="pu-body">
+          <div class="pu-row"><span class="pu-lbl">Latitude</span>
+            <span class="pu-val">${(+p.lat).toFixed(5)}°</span></div>
+          <div class="pu-row"><span class="pu-lbl">Longitude</span>
+            <span class="pu-val">${(+p.lng).toFixed(5)}°</span></div>
+          <div class="pu-row"><span class="pu-lbl">Precisão</span>
+            <span class="pu-val">± ${Math.round(+p.accuracy)} m</span></div>
+        </div>
+      `).addTo(map);
+    });
+    map.on('mouseenter', 'user-dot', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'user-dot', () => { map.getCanvas().style.cursor = ''; });
+
+    /* ------ TOGGLES ------ */
+    function bindToggle(checkboxId, layerIds) {
+      document.getElementById(checkboxId).addEventListener('change', e => {
+        const vis = e.target.checked ? 'visible' : 'none';
+        layerIds.forEach(id => map.setLayoutProperty(id, 'visibility', vis));
+        updateLegend();
+      });
+    }
+
+    bindToggle('tog-assai',     ['assai-dot', 'assai-halo']);
+    bindToggle('tog-mercantis', ['mercantis-dot', 'mercantis-label']);
+    bindToggle('tog-goiania',   ['goiania-fill', 'goiania-line']);
+    bindToggle('tog-pop',     ['setores-pop', 'setores-pop-line']);
+    bindToggle('tog-renda',   ['setores-renda', 'setores-renda-line']);
+
+    /* ------ UI ------ */
+    updateStats(setoresGJ.features);
+    updateLegend();
+    document.getElementById('loading').classList.add('hidden');
+
+  } catch (err) {
+    console.error('Erro ao carregar dados:', err);
+    document.getElementById('loading').innerHTML = `
+      <i class="fas fa-circle-exclamation" style="color:#FFD200;font-size:2.2rem"></i>
+      <p>Erro ao carregar os dados.</p>
+      <small>Verifique se o servidor está activo em http://localhost:8000</small>
+    `;
+  }
+}
+
+/* ============================================================
+   NAVEGAÇÃO
+   ============================================================ */
+function flyToAssai() {
+  map.flyTo({ center: assaiLngLat, zoom: 14.5, duration: 1100, essential: true });
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+function fitGoiania() {
+  if (goianiaBounds) {
+    map.fitBounds(goianiaBounds, { padding: { top: 40, bottom: 40, left: 40, right: 40 }, duration: 1100 });
+  } else {
+    map.flyTo({ center: assaiLngLat, zoom: 11, duration: 1000 });
+  }
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+/* ============================================================
+   GPS / GEOLOCALIZAÇÃO
+   ============================================================ */
+function setGpsStatus(html, isError = false) {
+  const el = document.getElementById('gps-status');
+  el.innerHTML = html;
+  el.classList.add('visible');
+  el.classList.toggle('gps-error', isError);
+}
+
+function updateUserOnMap(lng, lat, accuracy) {
+  userLngLat = [lng, lat];
+  const src = map.getSource('user-src');
+  if (!src) return;
+
+  src.setData({
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      properties: { lng, lat, accuracy: accuracy || 50 },
+      geometry: { type: 'Point', coordinates: [lng, lat] }
+    }]
+  });
+
+  ['user-accuracy', 'user-dot', 'user-pulse'].forEach(id => {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
+  });
+}
+
+function hideUserOnMap() {
+  userLngLat = null;
+  const src = map.getSource('user-src');
+  if (src) src.setData({ type: 'FeatureCollection', features: [] });
+  ['user-accuracy', 'user-dot', 'user-pulse'].forEach(id => {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
+  });
+}
+
+function onGpsSuccess(pos) {
+  const { longitude: lng, latitude: lat, accuracy } = pos.coords;
+  updateUserOnMap(lng, lat, accuracy);
+
+  setGpsStatus(
+    `<i class="fas fa-satellite-dish"></i> GPS ativo<br>` +
+    `<span class="gps-coords">${lat.toFixed(5)}, ${lng.toFixed(5)}</span><br>` +
+    `Precisão: ± ${Math.round(accuracy)} m`
+  );
+
+  if (gpsFirstFix) {
+    gpsFirstFix = false;
+    map.flyTo({ center: [lng, lat], zoom: 15, duration: 1200, essential: true });
+  }
+}
+
+function onGpsError(err) {
+  const msgs = {
+    1: 'Permissão de localização negada. Autorize o GPS no navegador.',
+    2: 'Posição indisponível. Verifique se o GPS está ligado.',
+    3: 'Tempo esgotado ao obter localização. Tente novamente.'
+  };
+  setGpsStatus(`<i class="fas fa-triangle-exclamation"></i> ${msgs[err.code] || err.message}`, true);
+  stopGps(false);
+}
+
+function startGps() {
+  if (!navigator.geolocation) {
+    setGpsStatus('<i class="fas fa-triangle-exclamation"></i> Geolocalização não suportada neste navegador.', true);
+    return;
+  }
+
+  gpsActive = true;
+  gpsFirstFix = true;
+  const btn = document.getElementById('btn-gps');
+  btn.classList.add('active');
+  btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Desativar GPS';
+
+  setGpsStatus('<i class="fas fa-spinner fa-spin"></i> Obtendo localização…');
+
+  gpsWatchId = navigator.geolocation.watchPosition(onGpsSuccess, onGpsError, {
+    enableHighAccuracy: true,
+    maximumAge: 5000,
+    timeout: 15000
+  });
+}
+
+function stopGps(resetBtn = true) {
+  if (gpsWatchId != null) {
+    navigator.geolocation.clearWatch(gpsWatchId);
+    gpsWatchId = null;
+  }
+  gpsActive = false;
+  gpsFirstFix = true;
+  hideUserOnMap();
+
+  if (resetBtn) {
+    const btn = document.getElementById('btn-gps');
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="fas fa-location-dot"></i> Ativar minha localização (GPS)';
+    const el = document.getElementById('gps-status');
+    el.classList.remove('visible', 'gps-error');
+    el.innerHTML = '';
+  }
+}
+
+function toggleGps() {
+  if (gpsActive) stopGps();
+  else startGps();
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+/* ============================================================
+   MAPA DE FUNDO — BASEMAP SWITCHER
+   Tile de preview: Goiânia z=9, x=185, y=279
+   ============================================================ */
+const BASEMAPS = [
+  {
+    id: 'osm',
+    name: 'OpenStreetMap',
+    tiles: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    preview: 'https://tile.openstreetmap.org/9/185/279.png'
+  },
+  {
+    id: 'google-streets',
+    name: 'Google Ruas',
+    tiles: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+    attribution: 'Map data &copy; Google',
+    preview: 'https://mt1.google.com/vt/lyrs=m&x=185&y=279&z=9'
+  },
+  {
+    id: 'google-satellite',
+    name: 'Google Satélite',
+    tiles: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+    attribution: 'Map data &copy; Google',
+    preview: 'https://mt1.google.com/vt/lyrs=s&x=185&y=279&z=9'
+  },
+  {
+    id: 'google-hybrid',
+    name: 'Google Híbrido',
+    tiles: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    attribution: 'Map data &copy; Google',
+    preview: 'https://mt1.google.com/vt/lyrs=y&x=185&y=279&z=9'
+  },
+  {
+    id: 'carto-light',
+    name: 'Carto Claro',
+    tiles: 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://carto.com">CARTO</a>',
+    preview: 'https://basemaps.cartocdn.com/light_all/9/185/279.png'
+  },
+  {
+    id: 'carto-dark',
+    name: 'Carto Escuro',
+    tiles: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://carto.com">CARTO</a>',
+    preview: 'https://basemaps.cartocdn.com/dark_all/9/185/279.png'
+  }
+];
+
+let currentBasemap = 'osm';
+
+// Gerar cards de basemap no DOM
+function buildBasemapGrid() {
+  const grid = document.getElementById('bm-grid');
+  grid.innerHTML = BASEMAPS.map(bm => `
+    <div class="bm-card ${bm.id === currentBasemap ? 'active' : ''}"
+         id="bm-${bm.id}"
+         onclick="switchBasemap('${bm.id}')"
+         title="${bm.name}">
+      <img src="${bm.preview}" alt="${bm.name}"
+           onerror="this.style.display='none';this.parentElement.style.background='#aaa'">
+      <div class="bm-label">${bm.name}</div>
+      <div class="bm-check"><i class="fas fa-check"></i></div>
+    </div>
+  `).join('');
+}
+
+function switchBasemap(id) {
+  const bm = BASEMAPS.find(b => b.id === id);
+  if (!bm || id === currentBasemap) return;
+
+  // Atualizar estado visual
+  const prev = document.getElementById('bm-' + currentBasemap);
+  const next  = document.getElementById('bm-' + id);
+  if (prev) prev.classList.remove('active');
+  if (next) next.classList.add('active');
+
+  currentBasemap = id;
+
+  // Remover camada e fonte actuais do basemap
+  if (map.getLayer('osm-bg')) map.removeLayer('osm-bg');
+  if (map.getSource('osm'))   map.removeSource('osm');
+
+  // Adicionar nova fonte
+  map.addSource('osm', {
+    type: 'raster',
+    tiles: [bm.tiles],
+    tileSize: 256,
+    attribution: bm.attribution
+  });
+
+  // Inserir camada antes da primeira camada de dados (para ficar no fundo)
+  const allLayers = map.getStyle().layers;
+  const firstData = allLayers.find(l => l.id !== 'osm-bg');
+  map.addLayer(
+    { id: 'osm-bg', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 22 },
+    firstData ? firstData.id : undefined
+  );
+}
+
+// Construir grid assim que o DOM estiver pronto
+buildBasemapGrid();
+
+/* ============================================================
+   ROTEAMENTO — OSRM (open source, sem chave API)
+   ============================================================ */
+const OSRM_BASE = 'https://router.project-osrm.org/route/v1/driving';
+
+let routeMode    = false;
+let originMarker = null;
+let routeLoading = false;
+let currentOrigin = null; // [lng, lat] — preenchido após rota calculada
+
+function toggleRouteMode() {
+  routeMode = !routeMode;
+  const btn     = document.getElementById('btn-route-toggle');
+  const mapWrap = document.getElementById('map-wrap');
+  const hint    = document.getElementById('route-hint');
+
+  if (routeMode) {
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="fas fa-xmark"></i> Cancelar seleção de origem';
+    mapWrap.classList.add('routing-mode');
+    hint.textContent = 'Clique no mapa para definir o ponto de partida.';
+  } else {
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="fas fa-crosshairs"></i> Clique no mapa para definir origem';
+    mapWrap.classList.remove('routing-mode');
+    hint.textContent = 'Ative e clique em qualquer ponto do mapa para calcular a rota de carro até a loja.';
+  }
+}
+
+function clearRoute() {
+  // Limpar estado
+  currentOrigin = null;
+  if (originMarker) { originMarker.remove(); originMarker = null; }
+
+  // Remove camadas e fonte da rota
+  ['route-line-case', 'route-line'].forEach(id => {
+    if (map.getLayer(id)) map.removeLayer(id);
+  });
+  if (map.getSource('route-src')) map.removeSource('route-src');
+
+  // Reset UI
+  document.getElementById('route-info').classList.remove('visible');
+  document.getElementById('btn-route-clear').style.display = 'none';
+  document.getElementById('route-hint').textContent =
+    'Ative e clique em qualquer ponto do mapa para calcular a rota de carro até a loja.';
+
+  if (routeMode) toggleRouteMode();
+}
+
+async function fetchRoute(originLngLat) {
+  if (routeLoading) return;
+  routeLoading = true;
+
+  const hint = document.getElementById('route-hint');
+  hint.textContent = 'Calculando rota…';
+
+  const [oLng, oLat] = originLngLat;
+  const [dLng, dLat] = assaiLngLat;
+  const url = `${OSRM_BASE}/${oLng},${oLat};${dLng},${dLat}?overview=full&geometries=geojson`;
+
+  try {
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (!data.routes || !data.routes.length) throw new Error('Sem rota disponível');
+
+    const route    = data.routes[0];
+    const distM    = route.legs[0].distance;   // metros
+    const durS     = route.legs[0].duration;   // segundos
+    const geom     = route.geometry;           // GeoJSON LineString
+
+    // Formatar distância
+    const distTxt = distM >= 1000
+      ? (distM / 1000).toFixed(1) + ' km'
+      : Math.round(distM) + ' m';
+
+    // Formatar duração
+    const mins = Math.round(durS / 60);
+    const durTxt = mins >= 60
+      ? `${Math.floor(mins/60)}h ${mins % 60}min`
+      : `${mins} min`;
+
+    // Atualizar cards
+    document.getElementById('rt-dist').textContent   = distTxt;
+    document.getElementById('rt-time').textContent   = durTxt;
+    document.getElementById('rt-origin').textContent =
+      `${oLng.toFixed(5)}, ${oLat.toFixed(5)}`;
+
+    // Desenhar rota no mapa
+    const routeGeoJSON = { type: 'Feature', geometry: geom, properties: {} };
+
+    if (map.getSource('route-src')) {
+      map.getSource('route-src').setData(routeGeoJSON);
+    } else {
+      map.addSource('route-src', { type: 'geojson', data: routeGeoJSON });
+
+      // Contorno (casing) branco para legibilidade
+      map.addLayer({
+        id: 'route-line-case',
+        type: 'line',
+        source: 'route-src',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': '#ffffff', 'line-width': 8, 'line-opacity': 0.6 }
+      }, 'assai-halo');
+
+      // Linha da rota
+      map.addLayer({
+        id: 'route-line',
+        type: 'line',
+        source: 'route-src',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': '#1d6fa8',
+          'line-width': 5,
+          'line-dasharray': [1, 0]
+        }
+      }, 'assai-halo');
+    }
+
+    // Ajustar viewport para mostrar rota completa
+    const coords = geom.coordinates;
+    const lngs   = coords.map(c => c[0]);
+    const lats   = coords.map(c => c[1]);
+    map.fitBounds(
+      [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+      { padding: { top: 60, bottom: 60, left: 60, right: 60 }, duration: 1000 }
+    );
+
+    // Guardar origem para botões de apps
+    currentOrigin = originLngLat;
+
+    // Mostrar card de resultado
+    document.getElementById('route-info').classList.add('visible');
+    document.getElementById('btn-route-clear').style.display = 'flex';
+    hint.textContent = 'Clique novamente no mapa para recalcular a rota.';
+
+  } catch (err) {
+    console.error('Erro na rota:', err);
+    hint.textContent = '⚠ Não foi possível calcular a rota. Verifique a conexão.';
+  } finally {
+    routeLoading = false;
+  }
+}
+
+/* ============================================================
+   ABRIR EM APLICATIVO DE MAPAS
+   ============================================================ */
+function openInMapApp(app) {
+  if (!currentOrigin) return;
+
+  const [oLng, oLat] = currentOrigin;
+  const [dLng, dLat] = assaiLngLat;
+  let url = '';
+
+  if (app === 'google') {
+    // Google Maps — suporta origem explícita
+    url = `https://www.google.com/maps/dir/?api=1` +
+          `&origin=${oLat},${oLng}` +
+          `&destination=${dLat},${dLng}` +
+          `&travelmode=driving`;
+
+  } else if (app === 'waze') {
+    // Waze — usa localização atual como origem; destino fixo
+    url = `https://waze.com/ul` +
+          `?ll=${dLat},${dLng}` +
+          `&navigate=yes` +
+          `&from=ll.${oLat},${oLng}`;
+
+  } else if (app === 'apple') {
+    // Apple Maps — funciona em iOS / macOS
+    url = `https://maps.apple.com/?saddr=${oLat},${oLng}` +
+          `&daddr=${dLat},${dLng}` +
+          `&dirflg=d`;
+  }
+
+  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+// Listener de clique no mapa para roteamento
+map.on('click', e => {
+  if (!routeMode) return;
+
+  const lngLat = [e.lngLat.lng, e.lngLat.lat];
+
+  // Colocar / mover marcador de origem
+  if (originMarker) {
+    originMarker.setLngLat(lngLat);
+  } else {
+    // Criar elemento de marcador personalizado
+    const el = document.createElement('div');
+    el.style.cssText = `
+      width: 28px; height: 28px;
+      background: #1d6fa8;
+      border: 3px solid white;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      cursor: pointer;
+    `;
+    originMarker = new maplibregl.Marker({ element: el, anchor: 'bottom-left' })
+      .setLngLat(lngLat)
+      .addTo(map);
+  }
+
+  // Desativar modo rota automaticamente e calcular
+  toggleRouteMode();
+  fetchRoute(lngLat);
+});
+
+/* ============================================================
+   ARRANQUE
+   ============================================================ */
+loadAll();
+</script>
+</body>
+</html>
