@@ -1,0 +1,2 @@
+# App usa apenas biblioteca padrão do Python (http.server).
+# Arquivo mantido para compatibilidade com Railway / Docker.
