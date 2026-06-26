@@ -1085,6 +1085,7 @@
           <div class="buffer-field">
             <label for="buffer-loja">Centro da área</label>
             <select id="buffer-loja">
+              <option value="" selected>Selecione o centro</option>
               <option value="assai">Loja Assaí</option>
               <option value="assai-oeste">Assaí Oeste</option>
               <option value="map">Clique no mapa</option>
@@ -1465,6 +1466,7 @@ function formatRadiusLabel(m) {
 
 function getBufferCenterFromUI() {
   const sel = document.getElementById('buffer-loja').value;
+  if (!sel) return null;
   if (sel === 'map') return bufferCenter;
   const loja = lojasRegistry.find(l => l.id === sel);
   return loja ? loja.getLngLat() : null;
@@ -1534,6 +1536,11 @@ function applyBufferSelection() {
   const radiusM = +document.getElementById('buffer-radius').value;
   const sel = document.getElementById('buffer-loja').value;
 
+  if (!sel) {
+    clearBufferSelection();
+    return;
+  }
+
   if (sel === 'map' && !bufferCenter) {
     toggleBufferPickMode(true);
     return;
@@ -1585,20 +1592,26 @@ function initBufferUI() {
 
   lojaSel.addEventListener('change', () => {
     updateBufferUIState();
-    if (lojaSel.value !== 'map') {
+    const sel = lojaSel.value;
+    if (!sel) {
+      clearBufferSelection();
+      return;
+    }
+    if (sel !== 'map') {
       if (bufferMarker) { bufferMarker.remove(); bufferMarker = null; }
       bufferCenter = null;
+      const loja = lojasRegistry.find(l => l.id === sel);
+      if (loja) flyToLoja(loja.getLngLat());
     }
     applyBufferSelection();
   });
 
   radiusInput.addEventListener('input', () => {
     updateBufferUIState();
-    applyBufferSelection();
+    if (lojaSel.value) applyBufferSelection();
   });
 
   updateBufferUIState();
-  applyBufferSelection();
 }
 
 /* ============================================================
@@ -1621,8 +1634,8 @@ map = new maplibregl.Map({
     },
     layers: [{ id: 'osm-bg', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 22 }]
   },
-  center: assaiLngLat,
-  zoom: 13,
+  center: [-49.264, -16.679],
+  zoom: 11,
   maxZoom: 18,
   minZoom: 8
 });
@@ -1981,6 +1994,7 @@ async function loadAll() {
     updateStats(setoresGJ.features);
     updateLegend();
     initBufferUI();
+    fitGoianiaView(false);
     document.getElementById('loading').classList.add('hidden');
 
   } catch (err) {
@@ -1997,16 +2011,28 @@ async function loadAll() {
    NAVEGAÇÃO
    ============================================================ */
 function flyToAssai() {
-  map.flyTo({ center: assaiLngLat, zoom: 14.5, duration: 1100, essential: true });
+  flyToLoja(assaiLngLat);
+}
+
+function flyToLoja(lngLat) {
+  map.flyTo({ center: lngLat, zoom: 14.5, duration: 1100, essential: true });
   if (window.innerWidth <= 768) closeMobileSidebars();
 }
 
-function fitGoiania() {
+function fitGoianiaView(animated = true) {
+  const duration = animated ? 1100 : 0;
   if (goianiaBounds) {
-    map.fitBounds(goianiaBounds, { padding: { top: 40, bottom: 40, left: 40, right: 40 }, duration: 1100 });
+    map.fitBounds(goianiaBounds, {
+      padding: { top: 40, bottom: 40, left: 40, right: 40 },
+      duration
+    });
   } else {
-    map.flyTo({ center: assaiLngLat, zoom: 11, duration: 1000 });
+    map.flyTo({ center: assaiLngLat, zoom: 11, duration: animated ? 1000 : 0 });
   }
+}
+
+function fitGoiania() {
+  fitGoianiaView(true);
   if (window.innerWidth <= 768) closeMobileSidebars();
 }
 
