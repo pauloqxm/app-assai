@@ -143,6 +143,22 @@
       gap: 6px;
     }
 
+    .s-category {
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: #777;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 2px 0 6px 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .layer-group { margin-bottom: 4px; }
+
+    .layer-group .layer-item { padding-left: 12px; }
+
     /* ===== LAYER TOGGLES ===== */
     .layer-item {
       display: flex;
@@ -703,15 +719,28 @@
       <div class="s-section">
         <div class="s-title"><i class="fas fa-layer-group"></i> Camadas</div>
 
-        <label class="layer-item">
-          <input type="checkbox" id="tog-assai" checked>
-          <div class="toggle-track"></div>
-          <div class="layer-dot" style="background:#CC1B1B"></div>
-          <div class="layer-text">
-            <div class="layer-name">Loja Assaí</div>
-            <div class="layer-desc">Ponto de referência</div>
-          </div>
-        </label>
+        <div class="s-category"><i class="fas fa-store"></i> Lojas</div>
+        <div class="layer-group">
+          <label class="layer-item">
+            <input type="checkbox" id="tog-assai" checked>
+            <div class="toggle-track"></div>
+            <div class="layer-dot" style="background:#CC1B1B"></div>
+            <div class="layer-text">
+              <div class="layer-name">Loja Assaí</div>
+              <div class="layer-desc">Ponto de referência principal</div>
+            </div>
+          </label>
+
+          <label class="layer-item">
+            <input type="checkbox" id="tog-assai-oeste" checked>
+            <div class="toggle-track"></div>
+            <div class="layer-dot" style="background:#CC1B1B"></div>
+            <div class="layer-text">
+              <div class="layer-name">Assaí Oeste</div>
+              <div class="layer-desc">Assai S.T Oeste</div>
+            </div>
+          </label>
+        </div>
 
         <label class="layer-item">
           <input type="checkbox" id="tog-mercantis" checked>
@@ -1160,8 +1189,9 @@ async function loadAll() {
       else map.on('load', resolve);
     });
 
-    const [assaiGJ, goianiaGJ, setoresGJ, mercantisGJ] = await Promise.all([
+    const [assaiGJ, assaiOesteGJ, goianiaGJ, setoresGJ, mercantisGJ] = await Promise.all([
       fetch('dados/assai.geojson').then(r => { if (!r.ok) throw new Error('assai.geojson'); return r.json(); }),
+      fetch('dados/assai_oeste.geojson').then(r => { if (!r.ok) throw new Error('assai_oeste.geojson'); return r.json(); }),
       fetch('dados/Goiania.geojson').then(r => { if (!r.ok) throw new Error('Goiania.geojson'); return r.json(); }),
       fetch('dados/setores.geojson').then(r => { if (!r.ok) throw new Error('setores.geojson'); return r.json(); }),
       fetch('dados/mercantis.geojson').then(r => { if (!r.ok) throw new Error('mercantis.geojson'); return r.json(); })
@@ -1300,6 +1330,27 @@ async function loadAll() {
       }
     });
 
+    /* ------ PONTO ASSAÍ OESTE ------ */
+    const assaiOesteFeature = assaiOesteGJ.features[0];
+    const assaiOesteLngLat = assaiOesteFeature.geometry.coordinates;
+    const assaiOesteNome = assaiOesteFeature.properties.Local || 'Assaí Oeste';
+
+    map.addSource('assai-oeste-src', { type: 'geojson', data: assaiOesteGJ });
+
+    map.addLayer({
+      id: 'assai-oeste-halo', type: 'circle', source: 'assai-oeste-src',
+      paint: { 'circle-color': '#CC1B1B', 'circle-radius': 20, 'circle-opacity': 0.12, 'circle-blur': 1 }
+    });
+    map.addLayer({
+      id: 'assai-oeste-dot', type: 'circle', source: 'assai-oeste-src',
+      paint: {
+        'circle-color': '#CC1B1B',
+        'circle-radius': 9,
+        'circle-stroke-width': 2.5,
+        'circle-stroke-color': '#FFFFFF'
+      }
+    });
+
     /* ------ INTERAÇÕES ------ */
     // Popups em setores
     ['setores-pop', 'setores-renda'].forEach(lyr => {
@@ -1329,6 +1380,20 @@ async function loadAll() {
     });
     map.on('mouseenter', 'assai-dot', () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', 'assai-dot', () => { map.getCanvas().style.cursor = ''; });
+
+    map.on('click', 'assai-oeste-dot', () => {
+      popup.setLngLat(assaiOesteLngLat).setHTML(`
+        <div class="pu-head"><i class="fas fa-store"></i>&nbsp;${assaiOesteNome}</div>
+        <div class="pu-body">
+          <div class="pu-row"><span class="pu-lbl">Lon</span>
+            <span class="pu-val">${assaiOesteLngLat[0].toFixed(5)}°</span></div>
+          <div class="pu-row"><span class="pu-lbl">Lat</span>
+            <span class="pu-val">${assaiOesteLngLat[1].toFixed(5)}°</span></div>
+        </div>
+      `).addTo(map);
+    });
+    map.on('mouseenter', 'assai-oeste-dot', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'assai-oeste-dot', () => { map.getCanvas().style.cursor = ''; });
 
     /* ------ LOCALIZAÇÃO DO USUÁRIO (GPS) ------ */
     map.addSource('user-src', {
@@ -1404,8 +1469,9 @@ async function loadAll() {
       });
     }
 
-    bindToggle('tog-assai',     ['assai-dot', 'assai-halo']);
-    bindToggle('tog-mercantis', ['mercantis-dot', 'mercantis-label']);
+    bindToggle('tog-assai',       ['assai-dot', 'assai-halo']);
+    bindToggle('tog-assai-oeste', ['assai-oeste-dot', 'assai-oeste-halo']);
+    bindToggle('tog-mercantis',   ['mercantis-dot', 'mercantis-label']);
     bindToggle('tog-goiania',   ['goiania-fill', 'goiania-line']);
     bindToggle('tog-pop',     ['setores-pop', 'setores-pop-line']);
     bindToggle('tog-renda',   ['setores-renda', 'setores-renda-line']);
