@@ -752,7 +752,7 @@
           <div class="layer-dot" style="background:#fd8d3c; border-radius:2px"></div>
           <div class="layer-text">
             <div class="layer-name">Setores — Renda</div>
-            <div class="layer-desc">V06004_real · 5 classes · intervalo igual</div>
+            <div class="layer-desc">V06004_real · 6 classes fixas (R$)</div>
           </div>
         </label>
       </div>
@@ -900,7 +900,17 @@ const RENDA_FIELD  = 'V06004_real';
 const N_CLASSES    = 5;
 
 const POP_COLORS   = ['#eff3ff','#bdd7e7','#6baed6','#2171b5','#084594'];
-const RENDA_COLORS = ['#ffffb2','#fecc5c','#fd8d3c','#f03b20','#bd0026'];
+const RENDA_COLORS = ['#ffffb2','#fecc5c','#feb24c','#fd8d3c','#f03b20','#bd0026'];
+// Classes fixas de renda (R$) — conforme tabela de referência
+const RENDA_BREAKS = [1621.01, 5000.01, 10389.01, 19156.01, 27924.01];
+const RENDA_LEGEND_LABELS = [
+  '≤ R$ 1.621',
+  'R$ 1.621 – R$ 5.000',
+  'R$ 5.000 – R$ 10.389',
+  'R$ 10.389 – R$ 19.156',
+  'R$ 19.156 – R$ 27.924',
+  '≥ R$ 27.924'
+];
 
 /* ============================================================
    ESTADO GLOBAL
@@ -925,10 +935,37 @@ function mercToLngLat(x, y) {
 }
 
 /* ============================================================
+   CONVERSÃO NUMÉRICA (IBGE / QGIS — vírgula decimal)
+   ============================================================ */
+function parseNumeric(value) {
+  if (value == null || value === '') return null;
+  if (typeof value === 'number' && isFinite(value)) return value;
+  let str = String(value).trim();
+  if (!str) return null;
+  // Formato brasileiro: 1.234,56 ou 4863,72
+  if (str.includes(',') && str.includes('.')) {
+    str = str.replace(/\./g, '').replace(',', '.');
+  } else if (str.includes(',')) {
+    str = str.replace(',', '.');
+  }
+  const n = parseFloat(str);
+  return isFinite(n) ? n : null;
+}
+
+function normalizeSetoresGeoJSON(geojson) {
+  for (const f of geojson.features) {
+    const p = f.properties;
+    p[POP_FIELD]   = parseNumeric(p[POP_FIELD]   ?? p.V06002);
+    p[RENDA_FIELD] = parseNumeric(p[RENDA_FIELD] ?? p.V06004);
+  }
+  return geojson;
+}
+
+/* ============================================================
    CLASSIFICAÇÃO: INTERVALO IGUAL
    ============================================================ */
 function equalIntervalBreaks(values, n) {
-  const valid = values.filter(v => v != null && isFinite(v));
+  const valid = values.map(v => parseNumeric(v)).filter(v => v != null && isFinite(v));
   if (!valid.length) return { min: 0, max: 0, breaks: [] };
   const min = Math.min(...valid);
   const max = Math.max(...valid);
@@ -969,6 +1006,21 @@ function buildLegendBlock(title, colors, breaks, fmtFn) {
     </div>`;
 }
 
+function buildLegendBlockRenda(title, colors, labels) {
+  return `
+    <div class="legend-block">
+      <div class="legend-head">${title}</div>
+      <div class="legend-rows">
+        ${colors.map((c, i) =>
+          `<div class="legend-row">
+             <div class="legend-swatch" style="background:${c}"></div>
+             <span>${labels[i]}</span>
+           </div>`
+        ).join('')}
+      </div>
+    </div>`;
+}
+
 function updateLegend() {
   const popOn   = document.getElementById('tog-pop').checked;
   const rendaOn = document.getElementById('tog-renda').checked;
@@ -981,7 +1033,7 @@ function updateLegend() {
 
   let html = '';
   if (popOn)   html += buildLegendBlock('População (V06002)', POP_COLORS,   popBreaks,   fmtN);
-  if (rendaOn) html += buildLegendBlock('Renda Média (V06004)', RENDA_COLORS, rendaBreaks, fmtR);
+  if (rendaOn) html += buildLegendBlockRenda('Renda (R$)', RENDA_COLORS, RENDA_LEGEND_LABELS);
   el.innerHTML = html;
 }
 
@@ -1060,6 +1112,14 @@ function stepExpr(field, colors, breaks) {
     breaks[2], colors[3],
     breaks[3], colors[4]
   ];
+}
+
+function stepExprMulti(field, colors, breaks) {
+  const expr = ['step', ['get', field], colors[0]];
+  for (let i = 0; i < breaks.length; i++) {
+    expr.push(breaks[i], colors[i + 1]);
+  }
+  return expr;
 }
 
 /* ============================================================
@@ -1147,13 +1207,13 @@ async function loadAll() {
     }
 
     /* ------ SETORES ------ */
-    const popVals   = setoresGJ.features.map(f => f.properties[POP_FIELD]);
-    const rendaVals = setoresGJ.features.map(f => f.properties[RENDA_FIELD]);
+    normalizeSetoresGeoJSON(setoresGJ);
 
-    const popInfo   = equalIntervalBreaks(popVals,   N_CLASSES);
-    const rendaInfo = equalIntervalBreaks(rendaVals, N_CLASSES);
+    const popVals   = setoresGJ.features.map(f => f.properties[POP_FIELD]);
+
+    const popInfo   = equalIntervalBreaks(popVals, N_CLASSES);
     popBreaks   = popInfo.breaks;
-    rendaBreaks = rendaInfo.breaks;
+    rendaBreaks = RENDA_BREAKS;
 
     map.addSource('setores-src', { type: 'geojson', data: setoresGJ });
 
@@ -1171,7 +1231,7 @@ async function loadAll() {
     map.addLayer({
       id: 'setores-renda', type: 'fill', source: 'setores-src',
       layout: { visibility: 'none' },
-      paint: { 'fill-color': stepExpr(RENDA_FIELD, RENDA_COLORS, rendaBreaks), 'fill-opacity': 0.78 }
+      paint: { 'fill-color': stepExprMulti(RENDA_FIELD, RENDA_COLORS, RENDA_BREAKS), 'fill-opacity': 0.78 }
     });
     map.addLayer({
       id: 'setores-renda-line', type: 'line', source: 'setores-src',
