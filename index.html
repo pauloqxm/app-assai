@@ -155,9 +155,122 @@
       gap: 5px;
     }
 
-    .layer-group { margin-bottom: 4px; }
+    .lojas-box {
+      background: linear-gradient(145deg, #fff9f9 0%, #fff0ee 100%);
+      border: 1.5px solid #e8c4c4;
+      border-radius: 10px;
+      padding: 10px 10px 8px;
+      margin-bottom: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
 
-    .layer-group .layer-item { padding-left: 12px; }
+    .lojas-box .s-category {
+      margin: 0 0 6px;
+      color: #a81818;
+      font-size: 0.65rem;
+    }
+
+    .layer-group { margin-bottom: 2px; }
+
+    .layer-group .layer-item { padding-left: 4px; }
+
+    .buffer-panel {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #ddb8b8;
+    }
+
+    .buffer-panel-title {
+      font-size: 0.67rem;
+      font-weight: 800;
+      color: #555;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .buffer-field { margin-bottom: 8px; }
+
+    .buffer-field label {
+      display: block;
+      font-size: 0.64rem;
+      font-weight: 700;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .buffer-field select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddb8b8;
+      border-radius: 6px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--dark);
+      background: white;
+    }
+
+    .buffer-field input[type="range"] {
+      width: 100%;
+      accent-color: var(--red);
+    }
+
+    .buffer-radius-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--red);
+      margin-top: 2px;
+    }
+
+    .buffer-stats {
+      display: none;
+      margin-top: 10px;
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+      border: 1px solid #e8c4c4;
+    }
+
+    .buffer-stats.visible { display: block; }
+
+    .buffer-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .buffer-stat-val {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--red);
+      line-height: 1.1;
+    }
+
+    .buffer-stat-lbl {
+      font-size: 0.62rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .buffer-stat-sub {
+      font-size: 0.64rem;
+      color: #999;
+      margin-top: 8px;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .btn-buffer { background: #8B1A1A; color: white; }
+    .btn-buffer:hover { background: #6d1414; }
+    .btn-buffer.active { background: var(--orange); color: white; }
+
+    #map-wrap.buffer-mode { cursor: crosshair !important; }
+    #map-wrap.buffer-mode #map { cursor: crosshair !important; }
 
     /* ===== LAYER TOGGLES ===== */
     .layer-item {
@@ -719,27 +832,73 @@
       <div class="s-section">
         <div class="s-title"><i class="fas fa-layer-group"></i> Camadas</div>
 
-        <div class="s-category"><i class="fas fa-store"></i> Lojas</div>
-        <div class="layer-group">
-          <label class="layer-item">
-            <input type="checkbox" id="tog-assai" checked>
-            <div class="toggle-track"></div>
-            <div class="layer-dot" style="background:#CC1B1B"></div>
-            <div class="layer-text">
-              <div class="layer-name">Loja Assaí</div>
-              <div class="layer-desc">Ponto de referência principal</div>
-            </div>
-          </label>
+        <div class="lojas-box">
+          <div class="s-category"><i class="fas fa-store"></i> Lojas</div>
+          <div class="layer-group">
+            <label class="layer-item">
+              <input type="checkbox" id="tog-assai" checked>
+              <div class="toggle-track"></div>
+              <div class="layer-dot" style="background:#CC1B1B"></div>
+              <div class="layer-text">
+                <div class="layer-name">Loja Assaí</div>
+                <div class="layer-desc">Ponto de referência principal</div>
+              </div>
+            </label>
 
-          <label class="layer-item">
-            <input type="checkbox" id="tog-assai-oeste" checked>
-            <div class="toggle-track"></div>
-            <div class="layer-dot" style="background:#CC1B1B"></div>
-            <div class="layer-text">
-              <div class="layer-name">Assaí Oeste</div>
-              <div class="layer-desc">Assai S.T Oeste</div>
+            <label class="layer-item">
+              <input type="checkbox" id="tog-assai-oeste" checked>
+              <div class="toggle-track"></div>
+              <div class="layer-dot" style="background:#CC1B1B"></div>
+              <div class="layer-text">
+                <div class="layer-name">Assaí Oeste</div>
+                <div class="layer-desc">Assai S.T Oeste</div>
+              </div>
+            </label>
+          </div>
+
+          <div class="buffer-panel">
+            <div class="buffer-panel-title"><i class="fas fa-circle-dot"></i> Seleção por raio</div>
+
+            <div class="buffer-field">
+              <label for="buffer-loja">Centro da área</label>
+              <select id="buffer-loja">
+                <option value="assai">Loja Assaí</option>
+                <option value="assai-oeste">Assaí Oeste</option>
+                <option value="map">Clique no mapa</option>
+              </select>
             </div>
-          </label>
+
+            <div class="buffer-field">
+              <label for="buffer-radius">Raio</label>
+              <input type="range" id="buffer-radius" min="500" max="10000" step="250" value="2000">
+              <div class="buffer-radius-display">
+                <span>500 m</span>
+                <span id="buffer-radius-label">2,0 km</span>
+                <span>10 km</span>
+              </div>
+            </div>
+
+            <button class="btn btn-buffer" id="btn-buffer-pick" onclick="toggleBufferPickMode()" style="display:none">
+              <i class="fas fa-crosshairs"></i> Clique no mapa para definir centro
+            </button>
+            <button class="btn btn-gray" id="btn-buffer-clear" onclick="clearBufferSelection()" style="display:none">
+              <i class="fas fa-trash"></i> Limpar seleção
+            </button>
+
+            <div class="buffer-stats" id="buffer-stats">
+              <div class="buffer-stats-grid">
+                <div>
+                  <div class="buffer-stat-val" id="buf-pop">—</div>
+                  <div class="buffer-stat-lbl">População total</div>
+                </div>
+                <div>
+                  <div class="buffer-stat-val" id="buf-renda">—</div>
+                  <div class="buffer-stat-lbl">Renda média</div>
+                </div>
+              </div>
+              <div class="buffer-stat-sub" id="buf-setores">—</div>
+            </div>
+          </div>
         </div>
 
         <label class="layer-item">
@@ -943,12 +1102,19 @@ const RENDA_LEGEND_LABELS = [
    ============================================================ */
 let map, popup;
 let assaiLngLat;
+let assaiOesteLngLat = null;
+let setoresData = null;
+let lojasRegistry = [];
 let goianiaBounds = null;
 let popBreaks = [], rendaBreaks = [];
 let gpsWatchId = null;
 let gpsActive = false;
 let userLngLat = null;
 let gpsFirstFix = true;
+let bufferCenter = null;
+let bufferRadiusM = 2000;
+let bufferPickMode = false;
+let bufferMarker = null;
 
 /* ============================================================
    CONVERSÃO EPSG:3857 → WGS84
@@ -1149,6 +1315,236 @@ function stepExprMulti(field, colors, breaks) {
 }
 
 /* ============================================================
+   SELEÇÃO POR RAIO (BUFFER)
+   ============================================================ */
+const EARTH_R = 6371008.8;
+
+function haversineM(lng1, lat1, lng2, lat2) {
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_R * Math.asin(Math.sqrt(a));
+}
+
+function polygonCentroid(ring) {
+  const n = ring.length - 1;
+  if (n <= 0) return null;
+  let sx = 0, sy = 0;
+  for (let i = 0; i < n; i++) {
+    sx += ring[i][0];
+    sy += ring[i][1];
+  }
+  return [sx / n, sy / n];
+}
+
+function featureCentroid(feature) {
+  const g = feature.geometry;
+  if (!g) return null;
+  if (g.type === 'Polygon') return polygonCentroid(g.coordinates[0]);
+  if (g.type === 'MultiPolygon') return polygonCentroid(g.coordinates[0][0]);
+  return null;
+}
+
+function createCirclePolygon(center, radiusM, steps = 72) {
+  const [lng, lat] = center;
+  const latRad = lat * Math.PI / 180;
+  const lngRad = lng * Math.PI / 180;
+  const angDist = radiusM / EARTH_R;
+  const ring = [];
+
+  for (let i = 0; i <= steps; i++) {
+    const bearing = (i / steps) * 2 * Math.PI;
+    const lat2 = Math.asin(
+      Math.sin(latRad) * Math.cos(angDist) +
+      Math.cos(latRad) * Math.sin(angDist) * Math.cos(bearing)
+    );
+    const lng2 = lngRad + Math.atan2(
+      Math.sin(bearing) * Math.sin(angDist) * Math.cos(latRad),
+      Math.cos(angDist) - Math.sin(latRad) * Math.sin(lat2)
+    );
+    ring.push([lng2 * 180 / Math.PI, lat2 * 180 / Math.PI]);
+  }
+
+  return {
+    type: 'Feature',
+    geometry: { type: 'Polygon', coordinates: [ring] },
+    properties: { radiusM }
+  };
+}
+
+function setoresWithinRadius(center, radiusM) {
+  if (!setoresData) return [];
+  return setoresData.features.filter(f => {
+    const c = featureCentroid(f);
+    if (!c) return false;
+    return haversineM(center[0], center[1], c[0], c[1]) <= radiusM;
+  });
+}
+
+function aggregateBufferSetores(features) {
+  let totalPop = 0;
+  let weightedRenda = 0;
+
+  features.forEach(f => {
+    const pop = f.properties[POP_FIELD];
+    const renda = f.properties[RENDA_FIELD];
+    if (pop != null && isFinite(pop)) {
+      totalPop += pop;
+      if (renda != null && isFinite(renda)) weightedRenda += pop * renda;
+    }
+  });
+
+  const avgRenda = totalPop > 0 ? weightedRenda / totalPop : null;
+  return { totalPop, avgRenda, count: features.length };
+}
+
+function formatRadiusLabel(m) {
+  return m >= 1000
+    ? (m / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km'
+    : m + ' m';
+}
+
+function getBufferCenterFromUI() {
+  const sel = document.getElementById('buffer-loja').value;
+  if (sel === 'map') return bufferCenter;
+  const loja = lojasRegistry.find(l => l.id === sel);
+  return loja ? loja.getLngLat() : null;
+}
+
+function updateBufferUIState() {
+  const sel = document.getElementById('buffer-loja').value;
+  const isMap = sel === 'map';
+  document.getElementById('btn-buffer-pick').style.display = isMap ? 'flex' : 'none';
+  document.getElementById('buffer-radius-label').textContent =
+    formatRadiusLabel(+document.getElementById('buffer-radius').value);
+}
+
+function drawBufferSelection(center, radiusM) {
+  if (!map.getSource('buffer-circle-src')) return;
+
+  if (document.getElementById('buffer-loja').value !== 'map' && bufferMarker) {
+    bufferMarker.remove();
+    bufferMarker = null;
+  }
+
+  const circle = createCirclePolygon(center, radiusM);
+  map.getSource('buffer-circle-src').setData(circle);
+
+  const selected = setoresWithinRadius(center, radiusM);
+  const ids = selected.map(f => f.properties.CD_SETOR).filter(Boolean);
+  const filter = ids.length
+    ? ['in', ['get', 'CD_SETOR'], ['literal', ids]]
+    : ['==', ['get', 'CD_SETOR'], ''];
+
+  map.setFilter('setores-buffer-fill', filter);
+  map.setFilter('setores-buffer-line', filter);
+  map.setLayoutProperty('setores-buffer-fill', 'visibility', ids.length ? 'visible' : 'none');
+  map.setLayoutProperty('setores-buffer-line', 'visibility', ids.length ? 'visible' : 'none');
+
+  const { totalPop, avgRenda, count } = aggregateBufferSetores(selected);
+  const statsEl = document.getElementById('buffer-stats');
+  statsEl.classList.add('visible');
+  document.getElementById('buf-pop').textContent = count ? fmtN(totalPop) : '0';
+  document.getElementById('buf-renda').textContent =
+    avgRenda != null ? fmtR(avgRenda) : '—';
+  document.getElementById('buf-setores').textContent =
+    `${count} setor${count !== 1 ? 'es' : ''} · raio ${formatRadiusLabel(radiusM)}`;
+
+  document.getElementById('btn-buffer-clear').style.display = 'flex';
+  bufferCenter = center;
+  bufferRadiusM = radiusM;
+
+  if (bufferMarker) {
+    bufferMarker.setLngLat(center);
+  } else if (document.getElementById('buffer-loja').value === 'map') {
+    const el = document.createElement('div');
+    el.style.cssText = `
+      width: 14px; height: 14px;
+      background: #FFD200;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    `;
+    bufferMarker = new maplibregl.Marker({ element: el })
+      .setLngLat(center)
+      .addTo(map);
+  }
+}
+
+function applyBufferSelection() {
+  const radiusM = +document.getElementById('buffer-radius').value;
+  const sel = document.getElementById('buffer-loja').value;
+
+  if (sel === 'map' && !bufferCenter) {
+    toggleBufferPickMode(true);
+    return;
+  }
+
+  const center = getBufferCenterFromUI();
+  if (!center) return;
+
+  if (bufferPickMode) toggleBufferPickMode(false);
+  drawBufferSelection(center, radiusM);
+}
+
+function clearBufferSelection() {
+  bufferCenter = null;
+  if (bufferMarker) { bufferMarker.remove(); bufferMarker = null; }
+  if (map.getSource('buffer-circle-src')) {
+    map.getSource('buffer-circle-src').setData({ type: 'FeatureCollection', features: [] });
+  }
+  ['setores-buffer-fill', 'setores-buffer-line'].forEach(id => {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
+  });
+  document.getElementById('buffer-stats').classList.remove('visible');
+  document.getElementById('btn-buffer-clear').style.display = 'none';
+  if (bufferPickMode) toggleBufferPickMode(false);
+}
+
+function toggleBufferPickMode(forceOn) {
+  const next = typeof forceOn === 'boolean' ? forceOn : !bufferPickMode;
+  bufferPickMode = next;
+
+  const btn = document.getElementById('btn-buffer-pick');
+  const mapWrap = document.getElementById('map-wrap');
+
+  if (bufferPickMode) {
+    if (routeMode) toggleRouteMode();
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="fas fa-xmark"></i> Cancelar — clique no mapa';
+    mapWrap.classList.add('buffer-mode');
+  } else {
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="fas fa-crosshairs"></i> Clique no mapa para definir centro';
+    mapWrap.classList.remove('buffer-mode');
+  }
+}
+
+function initBufferUI() {
+  const lojaSel = document.getElementById('buffer-loja');
+  const radiusInput = document.getElementById('buffer-radius');
+
+  lojaSel.addEventListener('change', () => {
+    updateBufferUIState();
+    if (lojaSel.value !== 'map') {
+      if (bufferMarker) { bufferMarker.remove(); bufferMarker = null; }
+      bufferCenter = null;
+    }
+    applyBufferSelection();
+  });
+
+  radiusInput.addEventListener('input', () => {
+    updateBufferUIState();
+    applyBufferSelection();
+  });
+
+  updateBufferUIState();
+  applyBufferSelection();
+}
+
+/* ============================================================
    INICIALIZAÇÃO DO MAPA
    ============================================================ */
 assaiLngLat = mercToLngLat(ASSAI_MERC[0], ASSAI_MERC[1]);
@@ -1266,6 +1662,49 @@ async function loadAll() {
       paint: { 'line-color': '#ffffff', 'line-width': 0.5, 'line-opacity': 0.35 }
     });
 
+    /* ------ BUFFER / SELEÇÃO POR RAIO ------ */
+    setoresData = setoresGJ;
+
+    map.addSource('buffer-circle-src', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] }
+    });
+
+    map.addLayer({
+      id: 'buffer-circle-fill',
+      type: 'fill',
+      source: 'buffer-circle-src',
+      paint: { 'fill-color': '#FFD200', 'fill-opacity': 0.1 }
+    });
+
+    map.addLayer({
+      id: 'buffer-circle-line',
+      type: 'line',
+      source: 'buffer-circle-src',
+      paint: {
+        'line-color': '#CC1B1B',
+        'line-width': 2,
+        'line-opacity': 0.85,
+        'line-dasharray': [3, 2]
+      }
+    });
+
+    map.addLayer({
+      id: 'setores-buffer-fill',
+      type: 'fill',
+      source: 'setores-src',
+      layout: { visibility: 'none' },
+      paint: { 'fill-color': '#FFD200', 'fill-opacity': 0.45 }
+    });
+
+    map.addLayer({
+      id: 'setores-buffer-line',
+      type: 'line',
+      source: 'setores-src',
+      layout: { visibility: 'none' },
+      paint: { 'line-color': '#CC1B1B', 'line-width': 2.2, 'line-opacity': 0.9 }
+    });
+
     /* ------ MERCANTIS (supermercados) ------ */
     map.addSource('mercantis-src', { type: 'geojson', data: mercantisGJ });
 
@@ -1332,8 +1771,13 @@ async function loadAll() {
 
     /* ------ PONTO ASSAÍ OESTE ------ */
     const assaiOesteFeature = assaiOesteGJ.features[0];
-    const assaiOesteLngLat = assaiOesteFeature.geometry.coordinates;
+    assaiOesteLngLat = assaiOesteFeature.geometry.coordinates;
     const assaiOesteNome = assaiOesteFeature.properties.Local || 'Assaí Oeste';
+
+    lojasRegistry = [
+      { id: 'assai', name: 'Loja Assaí', getLngLat: () => assaiLngLat },
+      { id: 'assai-oeste', name: 'Assaí Oeste', getLngLat: () => assaiOesteLngLat }
+    ];
 
     map.addSource('assai-oeste-src', { type: 'geojson', data: assaiOesteGJ });
 
@@ -1479,6 +1923,7 @@ async function loadAll() {
     /* ------ UI ------ */
     updateStats(setoresGJ.features);
     updateLegend();
+    initBufferUI();
     document.getElementById('loading').classList.add('hidden');
 
   } catch (err) {
@@ -1746,6 +2191,7 @@ function toggleRouteMode() {
     btn.innerHTML = '<i class="fas fa-xmark"></i> Cancelar seleção de origem';
     mapWrap.classList.add('routing-mode');
     hint.textContent = 'Clique no mapa para definir o ponto de partida.';
+    if (bufferPickMode) toggleBufferPickMode(false);
   } else {
     btn.classList.remove('active');
     btn.innerHTML = '<i class="fas fa-crosshairs"></i> Clique no mapa para definir origem';
@@ -1904,11 +2350,18 @@ function openInMapApp(app) {
   if (url) window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-// Listener de clique no mapa para roteamento
+// Listener de clique no mapa para roteamento e seleção por raio
 map.on('click', e => {
-  if (!routeMode) return;
-
   const lngLat = [e.lngLat.lng, e.lngLat.lat];
+
+  if (bufferPickMode) {
+    bufferCenter = lngLat;
+    toggleBufferPickMode(false);
+    applyBufferSelection();
+    return;
+  }
+
+  if (!routeMode) return;
 
   // Colocar / mover marcador de origem
   if (originMarker) {
