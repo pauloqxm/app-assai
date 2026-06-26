@@ -1,5 +1,5 @@
 """
-Servidor HTTP estático — Proximidades do Assaí.
+Servidor HTTP estático — GeoMercado.
 
 Local:
     python server.py
@@ -47,7 +47,7 @@ def main():
     os.chdir(root)
 
     print('=' * 52)
-    print('  Assaí — Análise de Proximidades')
+    print('  GeoMercado — Potencial de mercado')
     print('=' * 52)
     print(f'  Servidor: http://{HOST}:{PORT}')
     print('  Pressione Ctrl+C para encerrar.')

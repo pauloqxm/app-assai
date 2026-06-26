@@ -1,4 +1,4 @@
-# Deploy no Railway — Proximidades do Assaí
+# Deploy no Railway — GeoMercado
 
 ## Estrutura do projeto
 

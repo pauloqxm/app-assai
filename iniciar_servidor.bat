@@ -1,9 +1,9 @@
 @echo off
-title Assai - Servidor Local
+title GeoMercado - Servidor Local
 cd /d "%~dp0"
 echo.
 echo  ====================================================
-echo   Assai ^| Analise de Proximidades ^| Goiania
+echo   GeoMercado ^| Potencial de mercado ^| Goiania
 echo  ====================================================
 echo   Servidor: http://localhost:8000
 echo   Pressione Ctrl+C para encerrar.
